@@ -52,10 +52,15 @@ https://docs.btcpayserver.org/FAQ/Altcoin/##which-coins-does-btcpay-server-suppo
 
 ## Usage:
 1- The user click the Tip-Jar and select a fiat currency (Is possible to add more than the default)...
+
 2- She/he select predefined amount or select [Custom] to set a custom amount...
+
 3- She/he check if she/he have enough coins in her/his wallet and select [Yes] if its the case...
+
 4- She/he open the invoice page and proceeds to the payment of the donation...
+
 5- You are informed in real time about the progress and receive the coins directly to your wallet.
+
 6- Share with uncle Web... (just a joke XD).
 
 Enjoy :)
