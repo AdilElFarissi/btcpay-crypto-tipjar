@@ -73,7 +73,7 @@ reset(){
     txStatus = "";
     llSetTimerEvent(0);
     if (!isOutOfService){
-        state default;
+        resetRGB();
     }
     else{
        llSetText("Out Of Service!",<1,0,0>, 1.0); 
@@ -180,12 +180,22 @@ default
         channel = (integer)llFrand(123456789.0) + 1 * -1;
         CListener = llListen( channel, "", "", "");
         avatar = llDetectedKey(0);
-        if(avatar == llGetOwner()){
-            llDialog(avatar, "\n[RGB On/Off]: Turn the RGB effect On/Off.\n[donors]: Show the list of the donors in the chat.\n[Tip Test]: Start the donation process.",[" ","Close"," ","RGB On/Off","Donors","Tip Test"],channel);
+        if (avatar == llGetOwner()){
+            if (isOutOfService){
+                llDialog(avatar,"\nWarning: This Tip-Jar is OUT OF SERVICE!\n[Reset]: Click to make available.\n[Log Error]: Click to view the saved error.\n[Close]: Close this box without enabling the Tip-jat",["Reset","Log Error","Close"],channel);
+            }
+            else{
+                llDialog(avatar, "\n[RGB On/Off]: Turn the RGB effect On/Off.\n[donors]: Show the list of the donors in the chat.\n[Tip Test]: Start the donation process.",[" ","Close"," ","RGB On/Off","Donors","Tip Test"],channel);
+            }       
         }
         else{
-            llListenRemove(CListener);
-            state inUse;
+            if(isOutOfService){
+                llInstantMessage(avatar,"\nWarning: This Tip-Jar is OUT OF SERVICE!\nPlease secondlife:///app/agent/"+ llGetOwner() +"/im for support.");
+            }
+            else{
+                llListenRemove(CListener);
+                state inUse;
+            }
         }
     }
     
@@ -225,7 +235,6 @@ default
     listen(integer channel, string name, key id, string Box){
         if(avatar == llGetOwner()){
             if (Box == "Close" || Box == " "){ 
-                resetRGB();
                 avatar =  NULL_KEY;
                 llListenRemove(CListener);
             }
@@ -271,6 +280,18 @@ default
                 llListenRemove(CListener);
                 state inUse;
             }
+            else if (Box == "Reset" && isOutOfService && avatar == llGetOwner()){
+                isOutOfService = FALSE;
+                reset();
+            }
+            else if (Box == "Log Error" && avatar == llGetOwner()){
+                if (errorLog == ""){
+                    llInstantMessage(llGetOwner(),"No errors to log");
+                } 
+                else{
+                    llInstantMessage(llGetOwner(),errorLog);
+                }
+            }
         }    
     }
     
@@ -292,13 +313,6 @@ state inUse{
         llSetTimerEvent(0);
         channel = (integer)llFrand(123456789.0) + 1 * -1;
         CListener = llListen( channel, "", "", "");
-        if (isOutOfService){
-            if (avatar == llGetOwner()){
-                llInstantMessage(llGetOwner(),"\nWarning: This Tip-Jar is OUT OF SERVICE!");
-                llDialog(avatar,"\nWarning: This Tip-Jar is OUT OF SERVICE!\n[Reset]: Click to make available.\n[Log Error]: Click to view the saved error.\n[Close]: Close this box without enabling the Tip-jat",["Reset","Log Error","Close"],channel);
-            }           
-            llInstantMessage(avatar,"\nWarning: This Tip-Jar is OUT OF SERVICE!\nPlease secondlife:///app/agent/"+ llGetOwner() +"/im for support.");
-        }
         orderID = avatar;
         active = TRUE;
         llSetText("Processing...",<1,0.6,0.2>, 1.0);
@@ -327,38 +341,42 @@ state inUse{
                 else{
                     llInstantMessage(avatar,"\nThere is a problem with the BTCPay server: The rates data source is unavailable!.\nPlease try again after some minutes...");
                     llOwnerSay("\nDetected problem with BTCPay server!.\nError:\nRates data source is unavailable.\nStatus :"+ status);
-                    reset();            
+                    reset();
+                    state default;            
                 }            
             }
             else if (id == requestInvoice_id){ 
                 invoiceID = llJsonGetValue(Response, ["invoiceId"]);
                 invoiceURL = llJsonGetValue(Response, ["invoiceUrl"]);
-                if (invoiceID == "" || invoiceURL == ""){
-                    llSetText("Out of Service !",<1,0,0>, 1.0);
+                if (invoiceID == JSON_INVALID || invoiceURL == JSON_INVALID){
                     isOutOfService = TRUE;
                     llInstantMessage(llGetOwner(),"\nDetected problem with BTCPay server!. This Tip-Jar is OUT OF SERVICE.\nWarning: Empty invoiceID or invoiceURL.\nStatus :"+ status +"\n"+ Response);
                     errorLog = Response;
+                    llInstantMessage(avatar,"\nDetected a problem with BTCPay server!. This Tip-Jar is OUT OF SERVICE.");
                     reset();
+                    state default;
                 }
                 else {
                     llLoadURL(avatar, "Thank you for your donation!\nPlease, click to open the payment page.\nYour invoice ID is : "+ invoiceID +"\n", invoiceURL);
                     reset();
+                    state default;
                 }
             }
         }
         else if (status != 200){
-            llSetText("Out of Service !",<1,0,0>, 1.0);
             isOutOfService = TRUE;
             llInstantMessage(avatar,"This Tip-Jar is OUT OF SERVICE.\n");
             llInstantMessage(llGetOwner(),"\nDetected problem with BTCPay server!. This Tip-Jar is OUT OF SERVICE.\nStatus :"+ status +"\n"+ llJsonGetValue( llJsonGetValue(Response, ["Store"]),0));
             errorLog = Response; 
             reset();
+            state default;
         }
     }
     
     listen(integer channel, string name, key id, string Box){
         if (Box == "Close"){ 
-            reset(); 
+            reset();
+            state default;
         }
         else if (Box == "USD" || Box == "EUR" || Box == "GBP"){
             currency = Box; 
@@ -385,30 +403,18 @@ state inUse{
                     requestCurrentRate();
                 }
                 else{
-                llTextBox(avatar,"\nPlease, type a valid amount superior to 0 in "+ currency +" (use a dot for decimals) and click [Submit] button.\nThank you :)", channel);
+                llTextBox(avatar,"\nPlease, type a valid amount superior to 0 in "+ currency +" and click [Submit] button.\nThank you :)", channel);
                 }
             }
             else{
-                 llTextBox(avatar,"\nPlease, type a valid amount superior to 0 in "+ currency +" (use a dot for decimals) and click [Submit] button.\nThank you :)", channel);
+                 llTextBox(avatar,"\nPlease, type a valid amount superior to 0 in "+ currency +" and click [Submit] button.\nThank you :)", channel);
             }
         }
         else if (Box == "Yes"){
         requestInvoice();
         }
-        else if (Box == "Reset" && isOutOfService && avatar == llGetOwner()){
-            isOutOfService = FALSE;
-            reset();
-            state default;
-        }
-        else if (Box == "Log Error" && avatar == llGetOwner()){
-            if (errorLog == ""){
-                llInstantMessage(llGetOwner(),"No errors to log");
-            } 
-            else{
-                llInstantMessage(llGetOwner(),errorLog);
-            }
-        }
     }
+    
     timer(){
         if(active && invoiceID == "" && txStatus == "new"){
             llInstantMessage(avatar,"\nOperation timeout!\nPlease click the Tip-Jar again to retry.");

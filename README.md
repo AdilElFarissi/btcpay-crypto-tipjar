@@ -1,6 +1,10 @@
 # BTCPay Crypto Tip-Jar
 
 ## Version Notes:
+**Current: BTCPay Crypto Tip-Jar v0.2.1**
+
+Fixed error handling and data persistence between states.
+
 BTCPay Crypto Tip-Jar v0.2.
 
 This version was add: 
