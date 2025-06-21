@@ -205,7 +205,7 @@ default
             llHTTPResponse(id, 200, "success"); 
         }        
         else if (method == "POST" && llGetHTTPHeader(id, "x-remote-ip") == HttpInAllowedIP){
-			string status = llJsonGetValue(body, ["status"]);
+	    string status = llJsonGetValue(body, ["status"]);
             if(status == "expired" || status == "invalid"){
                 if (notifications){
                         llInstantMessage(llGetOwner(),"\nWarning: Invoice ID: "+ llJsonGetValue(body, ["id"]) +" expired!\n"+ llKey2Name(avatar) +" did not pay in time...");
