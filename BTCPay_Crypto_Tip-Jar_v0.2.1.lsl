@@ -205,19 +205,20 @@ default
             llHTTPResponse(id, 200, "success"); 
         }        
         else if (method == "POST" && llGetHTTPHeader(id, "x-remote-ip") == HttpInAllowedIP){
-            if(llJsonGetValue(body, ["status"]) == "expired" || llJsonGetValue(body, ["status"]) == "invalid"){
+			string status = llJsonGetValue(body, ["status"]);
+            if(status == "expired" || status == "invalid"){
                 if (notifications){
                         llInstantMessage(llGetOwner(),"\nWarning: Invoice ID: "+ llJsonGetValue(body, ["id"]) +" expired!\n"+ llKey2Name(avatar) +" did not pay in time...");
                 }
                 llHTTPResponse(id, 200, "success");          
             }
-            else if(llJsonGetValue(body, ["status"]) == "paid"){
+            else if(status == "paid"){
                 if (notifications){
                     llInstantMessage(llGetOwner(),"\nsecondlife:///app/agent/"+llJsonGetValue(body, ["orderId"]) +"/about donated: "+ llJsonGetValue(body, ["btcPrice"]) +" "+ defaultPaymentMethod +".\nInvoice ID: "+ llJsonGetValue(body, ["id"]) +" Paid (waiting confirmations).");
                 }
                 llHTTPResponse(id, 200, "success");
             }
-            else if(llJsonGetValue(body, ["status"]) == "confirmed" || llJsonGetValue(body, ["status"]) == "complete"){
+            else if(status == "confirmed" || status == "complete"){
                 donors += "\nsecondlife:///app/agent/"+ llJsonGetValue(body, ["orderId"])+"/about : "+ llJsonGetValue(body, ["price"])+" "+ llJsonGetValue(body, ["currency"]) +" ~ "+ llJsonGetValue(body, ["btcPrice"]) +" "+ defaultPaymentMethod +".";
                 donated += (float)llJsonGetValue(body, ["btcPrice"]);
                 resetRGB();
