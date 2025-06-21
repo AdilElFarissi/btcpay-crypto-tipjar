@@ -329,7 +329,6 @@ state inUse{
     }
     
     http_response(key id, integer status, list metaData, string Response){
-        llOwnerSay((string)status);
         if (status == 200 ){
             if (id == requestRates_id){
                 string rateJson = llJsonGetValue(Response, [0]);
