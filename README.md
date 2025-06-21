@@ -78,6 +78,8 @@ Between my modest contributions to the OpenSim saga there is the LinkInventory f
 
 https://github.com/AdilElFarissi
 
+Note: I am not affiliated or work with/for Opensimulator , BTCPay, NSL... I just add my magic touch where i feel it is necessary for the common good.
+
 ## My Tip-Jars:
 Usually nobody cares about the developers and the creators of the free and open source contents... but if you think that my work deserves more than a simple thank you, consider making a small donation using paypal or others here:
 
